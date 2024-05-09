@@ -20,16 +20,5 @@ fn main() -> Result<()> {
     let std_err = std::str::from_utf8(&output.stderr)?;
     eprint!("{}", std_err);
 
-    std::process::exit(output.status)
-
-    if output.status.success() {
-        let std_out = std::str::from_utf8(&output.stdout)?;
-        print!("{}", std_out);
-        let std_err = std::str::from_utf8(&output.stderr)?;
-        eprint!("{}", std_err);
-    } else {
-        std::process::exit(1);
-    }
-
-    Ok(())
+    std::process::exit(output.status.code().unwrap_or(-1));
 }
