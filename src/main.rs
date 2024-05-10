@@ -1,7 +1,13 @@
+use std::{fs, os::unix};
+
 use anyhow::{Context, Result};
 
 // Usage: your_docker.sh run <image> <command> <arg1> <arg2> ...
 fn main() -> Result<()> {
+    fs::create_dir_all("./sandbox")?;
+    unix::fs::chroot("./sandbox")?;
+    std::env::set_current_dir("/")?;
+
     let args: Vec<_> = std::env::args().collect();
     let command = &args[3];
     let command_args = &args[4..];
