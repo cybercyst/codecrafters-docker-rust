@@ -1,10 +1,24 @@
-use std::{fs, os::unix};
+use std::{
+    fs::{self, OpenOptions},
+    os::unix,
+    path::Path,
+};
 
 use anyhow::{Context, Result};
 
 // Usage: your_docker.sh run <image> <command> <arg1> <arg2> ...
 fn main() -> Result<()> {
-    fs::create_dir_all("./sandbox")?;
+    fs::create_dir_all("./sandbox/usr/local/bin")?;
+    fs::create_dir_all("./sandbox/dev")?;
+    fs::copy(
+        "/usr/local/bin/docker-explorer",
+        "./sandbox/usr/local/bin/docker-explorer",
+    )?;
+    OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(Path::new("./sandbox/dev/null"))?;
     unix::fs::chroot("./sandbox")?;
     std::env::set_current_dir("/")?;
 
