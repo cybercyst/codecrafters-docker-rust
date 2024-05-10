@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use libc::{unshare, CLONE_NEWPID};
 
 // Usage: your_docker.sh run <image> <command> <arg1> <arg2> ...
 fn main() -> Result<()> {
@@ -21,6 +22,10 @@ fn main() -> Result<()> {
         .open(Path::new("./sandbox/dev/null"))?;
     unix::fs::chroot("./sandbox")?;
     std::env::set_current_dir("/")?;
+
+    unsafe {
+        unshare(CLONE_NEWPID);
+    }
 
     let args: Vec<_> = std::env::args().collect();
     let command = &args[3];
