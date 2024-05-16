@@ -39,7 +39,7 @@ fn pull_image(repository: &str, _tag: &str) -> Result<()> {
         .unwrap()
         .json::<serde_json::Value>()
         .unwrap();
-    // println!("{resp:#?}");
+    println!("{resp:#?}");
 
     // let amd64_linux_manifests: Vec<&serde_json::Value> = resp
     //     .get("manifests")
@@ -87,7 +87,7 @@ fn pull_image(repository: &str, _tag: &str) -> Result<()> {
             "https://registry-1.docker.io/v2/library/{}/blobs/{}",
             repository, layer_digest
         );
-        // println!("{target:#?}");
+        println!("{target:#?}");
 
         let resp = reqwest::blocking::Client::new()
             .get(target)
