@@ -130,6 +130,7 @@ fn start_sandbox() -> Result<()> {
 fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
 
+    println!("{args:#?}");
     let image_args = &args[2].split(':').collect::<Vec<&str>>();
     let repo = image_args[0];
     let tag = image_args[1];
