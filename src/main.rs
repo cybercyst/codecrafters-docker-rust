@@ -132,8 +132,8 @@ fn main() -> Result<()> {
 
     println!("{args:#?}");
     let image_args = &args[2].split(':').collect::<Vec<&str>>();
-    let repo = image_args[0];
-    let tag = image_args[1];
+    let repo = image_args.first().unwrap();
+    let tag = image_args.get(1).unwrap_or(&"latest");
 
     pull_image(repo, tag)?;
     start_sandbox()?;
