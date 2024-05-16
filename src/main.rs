@@ -13,7 +13,7 @@ use tar::Archive;
 fn pull_image(repository: &str, _tag: &str) -> Result<()> {
     let sandbox_dir = Path::new("./sandbox");
     if sandbox_dir.exists() {
-        return Ok(());
+        fs::remove_dir_all(sandbox_dir)?;
     }
 
     let resp = reqwest::blocking::get(format!(
@@ -31,42 +31,46 @@ fn pull_image(repository: &str, _tag: &str) -> Result<()> {
             repository
         ))
         .header("Authorization", format!("Bearer {}", token))
+        .header(
+            "Accept",
+            "application/vnd.docker.distribution.manifest.v2+json",
+        )
         .send()
         .unwrap()
         .json::<serde_json::Value>()
         .unwrap();
     // println!("{resp:#?}");
 
-    let amd64_linux_manifests: Vec<&serde_json::Value> = resp
-        .get("manifests")
-        .unwrap()
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter(|x| {
-            let platform = x.get("platform").unwrap();
-            let architecture = platform.get("architecture").unwrap().as_str().unwrap();
-            let os = platform.get("os").unwrap().as_str().unwrap();
-            architecture == "amd64" && os == "linux"
-        })
-        .collect();
-    let manifest = amd64_linux_manifests[0];
+    // let amd64_linux_manifests: Vec<&serde_json::Value> = resp
+    //     .get("manifests")
+    //     .unwrap()
+    //     .as_array()
+    //     .unwrap()
+    //     .iter()
+    //     .filter(|x| {
+    //         let platform = x.get("platform").unwrap();
+    //         let architecture = platform.get("architecture").unwrap().as_str().unwrap();
+    //         let os = platform.get("os").unwrap().as_str().unwrap();
+    //         architecture == "amd64" && os == "linux"
+    //     })
+    //     .collect();
+    // let manifest = amd64_linux_manifests[0];
     // println!("{manifest:#?}");
 
-    let media_type = manifest.get("mediaType").unwrap().as_str().unwrap();
-    let digest = manifest.get("digest").unwrap().as_str().unwrap();
-
-    let resp = reqwest::blocking::Client::new()
-        .get(format!(
-            "https://registry-1.docker.io/v2/library/{}/manifests/{}",
-            repository, digest
-        ))
-        .header("Authorization", format!("Bearer {}", token))
-        .header("Accept", media_type)
-        .send()
-        .unwrap()
-        .json::<serde_json::Value>()
-        .unwrap();
+    // let media_type = manifest.get("mediaType").unwrap().as_str().unwrap();
+    // let digest = manifest.get("digest").unwrap().as_str().unwrap();
+    //
+    // let resp = reqwest::blocking::Client::new()
+    //     .get(format!(
+    //         "https://registry-1.docker.io/v2/library/{}/manifests/{}",
+    //         repository, digest
+    //     ))
+    //     .header("Authorization", format!("Bearer {}", token))
+    //     .header("Accept", media_type)
+    //     .send()
+    //     .unwrap()
+    //     .json::<serde_json::Value>()
+    //     .unwrap();
     // println!("{resp:#?}");
 
     let layer_digests: Vec<&str> = resp
@@ -80,8 +84,8 @@ fn pull_image(repository: &str, _tag: &str) -> Result<()> {
 
     for layer_digest in layer_digests.into_iter() {
         let target = format!(
-            "https://registry-1.docker.io/v2/library/ubuntu/blobs/{}",
-            layer_digest
+            "https://registry-1.docker.io/v2/library/{}/blobs/{}",
+            repository, layer_digest
         );
         // println!("{target:#?}");
 
